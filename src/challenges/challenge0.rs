@@ -5,7 +5,7 @@ use axum::{
 };
 
 pub fn router<S: Clone + Send + Sync + 'static>() -> Router<S> {
-    Router::new().route("/-1/seek", get(vibe_of_the_day))
+    Router::new().route("/seek", get(vibe_of_the_day))
 }
 
 pub async fn hello_world() -> &'static str {
