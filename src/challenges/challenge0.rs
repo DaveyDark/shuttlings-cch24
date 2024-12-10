@@ -4,13 +4,11 @@ use axum::{
     Router,
 };
 
-pub fn route(router: Router) -> Router {
-    router
-        .route("/", get(hello_world))
-        .route("/-1/seek", get(vibe_of_the_day))
+pub fn router<S: Clone + Send + Sync + 'static>() -> Router<S> {
+    Router::new().route("/-1/seek", get(vibe_of_the_day))
 }
 
-async fn hello_world() -> &'static str {
+pub async fn hello_world() -> &'static str {
     "Hello, bird!"
 }
 

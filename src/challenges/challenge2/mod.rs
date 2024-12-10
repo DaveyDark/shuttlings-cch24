@@ -3,6 +3,6 @@ use manifest::parse_manifest;
 
 mod manifest;
 
-pub fn route(router: Router) -> Router {
-    router.route("/5/manifest", post(parse_manifest))
+pub fn router() -> Router {
+    Router::new().route("/manifest", post(parse_manifest))
 }

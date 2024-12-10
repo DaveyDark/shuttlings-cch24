@@ -17,10 +17,10 @@ struct DestQuery {
     key: String,
 }
 
-pub fn route(router: Router) -> Router {
-    router
-        .route("/2/dest", get(dest))
-        .route("/2/key", get(key))
-        .route("/2/v6/dest", get(dest_v6))
-        .route("/2/v6/key", get(key_v6))
+pub fn router() -> Router {
+    Router::new()
+        .route("/dest", get(dest))
+        .route("/key", get(key))
+        .route("/v6/dest", get(dest_v6))
+        .route("/v6/key", get(key_v6))
 }
