@@ -1,3 +1,5 @@
+use rand::{rngs::StdRng, Rng};
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 enum BoardTile {
     Milk,
@@ -34,6 +36,23 @@ impl Board {
         Board {
             board: [[BoardTile::Empty; 4]; 4],
         }
+    }
+
+    pub fn new_random(rand: &mut StdRng) -> Board {
+        let mut board = Board {
+            board: [[BoardTile::Empty; 4]; 4],
+        };
+        for i in 0..4 {
+            for j in 0..4 {
+                let r = rand.gen::<bool>();
+                if r {
+                    board.board[i][j] = BoardTile::Cookie;
+                } else {
+                    board.board[i][j] = BoardTile::Milk;
+                }
+            }
+        }
+        board
     }
 
     pub fn place_tile(&mut self, team: String, col: usize) -> Result<(), String> {

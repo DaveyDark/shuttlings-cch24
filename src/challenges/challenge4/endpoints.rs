@@ -2,18 +2,27 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
+use rand::{rngs::StdRng, SeedableRng};
 
 use super::{board::Board, AppState};
 
 pub async fn get_board(State(state): State<AppState>) -> (StatusCode, String) {
     // Return board as a string
-    let board = state.read().await;
+    let f_state = state.read().await;
+    let board = &f_state.board;
     (StatusCode::OK, board.to_string())
 }
 
 pub async fn reset_board(State(state): State<AppState>) -> (StatusCode, String) {
     // Reset board to a new one
-    let mut board = state.write().await;
+    let mut f_state = state.write().await;
+
+    // Reset RNG
+    let rng = &mut f_state.rng;
+    *rng = StdRng::seed_from_u64(2024);
+
+    // Reset board
+    let board = &mut f_state.board;
     *board = Board::new();
     (StatusCode::OK, board.to_string())
 }
@@ -23,7 +32,8 @@ pub async fn place_tile(
     Path((team, col)): Path<(String, usize)>,
 ) -> (StatusCode, String) {
     // Get write access to board
-    let mut board = state.write().await;
+    let mut f_state = state.write().await;
+    let board = &mut f_state.board;
 
     // Check if board is already complete
     if let Some(_) = board.get_result() {
@@ -52,4 +62,11 @@ pub async fn place_tile(
     } else {
         (StatusCode::OK, board.to_string())
     }
+}
+
+pub async fn random_board(State(state): State<AppState>) -> Result<String, ()> {
+    let mut f_state = state.write().await;
+    f_state.board = Board::new_random(&mut f_state.rng);
+
+    Ok(f_state.board.to_string())
 }
