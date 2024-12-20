@@ -1,9 +1,9 @@
-use std::env;
+use std::{collections::HashSet, env};
 
 use axum::http::StatusCode;
 use axum::Json;
 use axum_extra::extract::{cookie::Cookie, CookieJar};
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{decode, decode_header, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -66,4 +66,28 @@ pub async fn unwrap(jar: CookieJar) -> Result<Json<Value>, StatusCode> {
     }
     let body = claim.unwrap().claims.body;
     Ok(Json(body))
+}
+
+pub async fn decode_jwt(body: String) -> Result<Json<Value>, StatusCode> {
+    // Create RSA public key
+    let key_bytes = include_bytes!("key.pem");
+    let key =
+        DecodingKey::from_rsa_pem(key_bytes).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    // Decode Header
+    let header = decode_header(&body).map_err(|_| StatusCode::BAD_REQUEST)?;
+
+    // Decode JWT
+    let mut validation = Validation::new(header.alg);
+    validation.validate_exp = false;
+    validation.required_spec_claims = HashSet::new();
+    let decrypted_body =
+        decode::<Value>(&body, &key, &validation).map_err(|err| match err.kind() {
+            jsonwebtoken::errors::ErrorKind::InvalidSignature => StatusCode::UNAUTHORIZED,
+            _ => StatusCode::BAD_REQUEST,
+        })?;
+
+    let response = Json(decrypted_body.claims);
+
+    return Ok(response);
 }
