@@ -3,13 +3,18 @@ use std::env;
 use axum::routing::get;
 use axum::Router;
 use challenges::challenge0::{self, hello_world};
-use challenges::{challenge1, challenge2, challenge3, challenge4, challenge5};
+use challenges::{challenge1, challenge2, challenge3, challenge4, challenge5, challenge6};
 use shuttle_runtime::{SecretStore, Secrets};
+use shuttle_shared_db::Postgres;
+use sqlx::PgPool;
 
 mod challenges;
 
 #[shuttle_runtime::main]
-async fn main(#[Secrets] secrets: SecretStore) -> shuttle_axum::ShuttleAxum {
+async fn main(
+    #[Postgres] pool: PgPool,
+    #[Secrets] secrets: SecretStore,
+) -> shuttle_axum::ShuttleAxum {
     // Set secret to env var
     env::set_var(
         "JWT_SECRET",
@@ -23,7 +28,8 @@ async fn main(#[Secrets] secrets: SecretStore) -> shuttle_axum::ShuttleAxum {
         .nest("/5", challenge2::router())
         .nest("/9", challenge3::router())
         .nest("/12", challenge4::router())
-        .nest("/16", challenge5::router());
+        .nest("/16", challenge5::router())
+        .nest("/19", challenge6::router(&pool).await);
 
     Ok(router.into())
 }
